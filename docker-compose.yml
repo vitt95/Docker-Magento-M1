@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mg_nginx:
+    container_name: mg_nginx
+    build:
+      context: ./nginx
+    ports:
+      - 8000:80
+    depends_on:
+      - mg_php
+    volumes:
+      - ../magento2-2.4.5:/var/www/html/magento
+
+  mg_php:
+    container_name: mg_php
+    build:
+      context: ./php 
+    volumes:
+      - ../magento2-2.4.5:/var/www/html/magento
+  
+  mg_mysql:
+    container_name: mg_mysql
+    build:
+      context: ./db
+    volumes:
+      - ./db/mysqldata:/var/lib/mysql
+    ports:
+      - 3306:3306
+    
+  elasticsearch:
+    image: arm64v8/elasticsearch:7.17.6
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearchdata:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    
